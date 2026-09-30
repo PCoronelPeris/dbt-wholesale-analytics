@@ -1,0 +1,4 @@
+dbt-core==1.11.*
+dbt-duckdb==1.11.*
+dbt-bigquery==1.11.*
+pandas

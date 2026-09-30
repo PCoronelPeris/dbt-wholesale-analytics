@@ -1,0 +1,8 @@
+.venv/
+.env
+data/*.duckdb
+data/*.duckdb.wal
+AI_OPERATING_BRIEF.md
+SESSION_PROTOCOL.md
+WALKTHROUGH.md
+PROJECT_INSTRUCTIONS.txt
