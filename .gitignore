@@ -6,3 +6,9 @@ AI_OPERATING_BRIEF.md
 SESSION_PROTOCOL.md
 WALKTHROUGH.md
 PROJECT_INSTRUCTIONS.txt
+
+# dbt artifacts and local files
+target/
+dbt_packages/
+logs/
+.user.yml

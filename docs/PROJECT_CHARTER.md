@@ -1,6 +1,6 @@
 # PROJECT CHARTER — `dbt-wholesale-analytics`
 
-`Version v3 · 2026-09-29 · hard cap 40 h end-to-end (30.5 h planned + 30% buffer = 39.65 h), exam on 2026-10-30, PostgreSQL replaced by BigQuery for grants, Data Studio dashboard, project handbook`
+`Version v4 · 2026-10-18 · recalibrated: the same 19 milestones, M02–M18 budgeted at 1.5–2 h of real time each (38.0 h in total, cap 40 h); no calendar dates; loader semantics fixed for snapshots and relationship tests (v3 · 2026-09-29: 40 h cap, BigQuery for grants, Data Studio dashboard, project handbook)`
 
 > **What this document is.** The stable contract for the whole project. If something
 > here conflicts with a milestone, this document wins and the milestone is wrong. If
@@ -17,7 +17,7 @@ Three outputs, in this priority order.
 
 | # | Output | Test for "done" |
 |---|--------|-----------------|
-| 1 | **Every bullet of the official dbt Analytics Engineering Certification outline (dbt Core 1.11) executed at least once, by hand, against real data** — before the exam on **2026-10-30**. | Section 9 coverage matrix has no empty cell. |
+| 1 | **Every bullet of the official dbt Analytics Engineering Certification outline (dbt Core 1.11) executed at least once, by hand, against real data** — before the exam. | Section 9 coverage matrix has no empty cell. |
 | 2 | **A project handbook that explains how the project was built and why**, one chapter per milestone, in which any error or decision can be traced to its cause. | `docs/handbook/` has one chapter per merged milestone and a generated index. |
 | 3 | **A public GitHub repository a US hiring manager reads as production-grade analytics engineering**, with a cloud warehouse (BigQuery) and a BI dashboard (Data Studio). | A stranger clones it, runs three commands, gets a working warehouse with passing tests; the docs site and the dashboard open from the README. |
 
@@ -30,15 +30,15 @@ When outputs conflict, the lower number wins.
 | Constraint | Value |
 |---|---|
 | Total cost | **US$0**, forever: no trials, no credit card, no billing account |
-| Total effort | **≤ 40 h end-to-end**, installs and friction included: 30.0 h of milestones + 0.5 h of audits + 9.15 h buffer = 39.65 h (§2.2) |
-| Exam | dbt Analytics Engineering Certification, dbt Core **1.11**, on **2026-10-30** |
+| Total effort | **≤ 40 h end-to-end**, installs and friction included: 8.0 h spent on M00–M01 + 29.5 h for M02–M18 + 0.5 h of audits = 38.0 h (section 2.2) |
+| Exam | dbt Analytics Engineering Certification, dbt Core **1.11** (the date is kept out of the plan documents) |
 | Target dbt version | **dbt Core 1.11** (1.12 exists; the exam tests 1.11 — do not upgrade) |
 | Core path runs locally | DuckDB on the laptop; BigQuery is a second target, not a dependency |
 | Reproducible by a stranger | `make setup && make load && make build` from a clean clone |
 | Data acquisition risk | **Zero** — nothing downloaded, no login or API key for the core path |
-| Git | One milestone = one branch, one PR, squash merge; CI required from M15 |
+| Git | One milestone = one branch, one PR, squash merge, run by `make start` and `make close`; CI required from M15 |
 | Documentation | One handbook chapter per milestone, written at the close of that milestone |
-| Exposure | **Tier A — public repository, no licence, all rights reserved** (§2.1) |
+| Exposure | **Tier A — public repository, no licence, all rights reserved** (section 2.1) |
 
 **Out of scope, deliberately.** Orchestration (Airflow, Dagster), a paid BI tool, Looker
 (the enterprise product), Tableau, Kubernetes, Terraform, a semantic layer, dbt Mesh,
@@ -51,36 +51,28 @@ exam.
 |---|---|
 | Repository visibility | Public |
 | Licence | **None selected** at creation. Default copyright applies: all rights reserved *(GitHub Docs, "Licensing a repository")* |
-| Notice | README §9 states the copyright and allows cloning and running locally only to evaluate the project |
+| Notice | README section 9 states the copyright and allows cloning and running locally only to evaluate the project |
 | What GitHub's terms still allow | Others may view and fork a public repo on GitHub. Accepted: the value is the author's ability to build and defend the work, which a copy does not transfer |
 | Why not private | On GitHub Free a private repo loses GitHub Pages (the docs site) and branch protection (M15), and hides the evidence reviewers read |
 | Never committed | `AI_OPERATING_BRIEF.md`, `SESSION_PROTOCOL.md`, `WALKTHROUGH.md`, `PROJECT_INSTRUCTIONS.txt`, `.env`, `data/*.duckdb`, any credential |
-| Guard | The pre-publish check (`AI_OPERATING_BRIEF.md` §3.13) runs before every commit |
+| Guard | The pre-publish check (`AI_OPERATING_BRIEF.md` section 3.13) runs before every commit |
 
-### 2.2 Effort and calendar (computed in code, 2026-09-29)
+### 2.2 Effort (recalibrated 2026-10-18)
+
+M00 and M01 were estimated at 1.5 h each and took 4.0 h each. The causes and the method
+that removes them are in `MILESTONES.md` section 0.3 and in the brief, Part 1. From M02 on,
+budgets are real time at the user's pace.
 
 | Item | Hours |
 |---|---|
-| 19 milestones, M00–M18 | 30.0 |
+| M00–M01, spent | 8.0 |
+| M02–M18, 1.5–2 h each (MILESTONES section 0.3) | 29.5 |
 | 2 phase audits (after M06 and M16) | 0.5 |
-| Planned work | 30.5 |
-| Buffer, 30% of planned work | 9.15 |
-| **Cap** | **39.65 ≤ 40** |
+| **Total** | **38.0 ≤ 40** |
 
-| Weekly capacity | Weeks for 39.65 h | Build ends around | Fits before the exam-week plan (starts 2026-10-25)? |
-|---|---|---|---|
-| 12 h (4 × 3 h) — **recommended** | 3.3 | 2026-10-22 | Yes, 2 days of slack |
-| 10 h (4 × 2.5 h) | 4.0 | 2026-10-27 | No — M18 moves to after the exam |
-
-The exam-week study plan (MILESTONES Appendix B, about 8 h) is study, not project work,
-and sits outside the 40 h.
-
-**Why the plan shrank from v2 (55.5 h) to v3 (30.5 h planned).** Milestones that
-exercised the same exam bullet were merged (staging + seeds + packages; tests + unit tests;
-contracts + versions + access; snapshots + Python), PostgreSQL and Docker were removed
-(grants move to BigQuery, which is also the portfolio's cloud target), and three items with
-no exam weight were cut (`dbt_project_evaluator`, the AI triage agent, `dim_date`). Exam
-coverage is unchanged: §9 still has no empty cell.
+No calendar dates are kept in the plan: progress is measured in hours against these
+budgets. The exam-week study plan (MILESTONES Appendix B, about 8 h) is study, not project
+work, and sits outside the 40 h.
 
 ---
 
@@ -175,9 +167,9 @@ The `.duckdb` file is git-ignored; the repo ships the generator, not the data.
 
 | Behaviour | Implementation | Exam topic it enables |
 |---|---|---|
-| Load metadata | `_loaded_at`, `_batch_id` on every raw table | source freshness |
+| Load metadata | `_loaded_at`, `_batch_id` on every raw table; `_updated_at` on the six reference tables | source freshness; `timestamp` snapshots |
 | Incremental arrival | orders and line items load in date waves (`--through-date`) | incremental, microbatch |
-| Mutating dimensions | `--mutate` changes segments and balances, deletes suppliers | snapshots, `hard_deletes` |
+| Mutating dimensions | `--mutate` changes customer segments and supplier balances, and deletes the five synthetic suppliers (no parts, so no line item loses its supplier) | snapshots, `hard_deletes` |
 
 ---
 
@@ -288,7 +280,7 @@ Four layers, each with one job:
 | **Handbook** | `docs/handbook/mNN-slug.md` + generated `README.md` | How was it built, why, what broke and how was it fixed, what does the exam ask? | One chapter at every close |
 | Reference | dbt docs site (`dbt docs generate`) | What does each model and column mean, and what feeds it? | From YAML descriptions, published at M17 |
 
-The chapter template is in `AI_OPERATING_BRIEF.md` §3.14. The index is generated by
+The chapter template is in `AI_OPERATING_BRIEF.md` section 3.14. The index is generated by
 `make handbook`, never edited by hand. Chapters are written in plain English: short
 sentences, every term defined the first time it appears, the real command before the
 explanation of it.
@@ -303,7 +295,7 @@ explanation of it.
 | R2 | The BigQuery sandbox rejects `GRANT` | Low (not documented either way) | Tested in M00. If rejected: grants run on PostgreSQL in Docker in M12 (+0.5 h from the buffer). |
 | R3 | SF 1 too slow on the laptop | Low | `TPCH_SCALE_FACTOR=0.1`. Nothing else changes. |
 | R4 | GitHub Pages unavailable | Low | Link the generated docs from a `docs-site` branch. |
-| R5 | The 40 h cap is at risk | Medium | Stop any milestone at 1.5× its budget (brief §2.3). If cumulative drift exceeds 30%, M18 moves to after the exam. M00–M17 are never cut. |
+| R5 | The 40 h cap is at risk | Medium (2.0 h of slack) | Stop any milestone at 1.5× its budget (brief section 2.3). M18 is the first thing to move to after the exam. M00–M17 are never cut. |
 | R6 | Sandbox tables expire (60 days) and break the dashboard | Certain, after 60 days | `make bq-build` recreates them; the committed screenshot stays valid. |
 | R7 | A private file or secret is pushed | Low | Pre-publish check before every commit; `.gitignore` from M00. |
 
@@ -395,12 +387,9 @@ Every bullet is copied from the official dbt Labs study guide for exam version 1
 
 ## 10. Clock
 
-| Item | Date | Status |
-|---|---|---|
-| Build starts | 2026-09-29 | — |
-| Build ends (latest) | 2026-10-24 | at 12 h/week, around 2026-10-22 |
-| Exam-week plan | 2026-10-25 → 2026-10-29 | outside the 40 h |
-| **Exam** | **2026-10-30** | confirmed by the user on 2026-09-29 |
+No calendar dates are kept in the plan documents (decision of 2026-10-18). Progress is
+measured in hours: each log entry records the actual hours against the milestone budget,
+and the phase audits compare the total with the 40 h cap.
 
 ---
 
@@ -412,5 +401,7 @@ Every bullet is copied from the official dbt Labs study guide for exam version 1
    code it explains.
 4. **One decision → one `D-MNN-n` entry** in that milestone's chapter.
 5. **Every error met is recorded** as `E-MNN-n` with its verbatim message, cause and fix.
-6. **Terminal first** for git: `git switch -c`, `git add`, `git commit`, `gh pr create`.
+6. **Terminal first** for git. `make start M=NN` and `make close M=NN` (`scripts/milestone.py`)
+   run the sequence: `git switch -c`, `git add`, the pre-publish check, `git commit`,
+   `git push`, `gh pr create`, `gh pr merge --squash`.
 7. **Numbers are computed, never estimated in the head.**

@@ -1,0 +1,15 @@
+# Connection settings for the "wholesale_analytics" profile
+wholesale_analytics:
+  # Output used when --target is not passed
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      schema: dev
+      threads: 4
+    prod:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '../data/warehouse.duckdb') }}"
+      schema: prod
+      threads: 4
