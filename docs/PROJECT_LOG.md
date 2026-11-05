@@ -15,18 +15,19 @@
 
 | Field | Value |
 |---|---|
-| Last milestone completed | **M00 — Prove the stack before building on it** (2026-09-30) |
-| Next milestone | **M01 — Project skeleton, `dbt_project.yml`, handbook tooling** |
-| Hours used | 4.0 of 39.65 (cap 40) · remaining plan 29.0 h · buffer left 6.65 h |
-| Schedule status | drift +2.5 h (M00: 4.0 h vs 1.5 h) · above the 30% rule → M18 moved to after the exam (D-M00-8) · exam on 2026-10-30 · build must end by 2026-10-24 |
-| Repo exists on GitHub | yes · `PCoronelPeris/dbt-wholesale-analytics` · public · no licence · 1 commit on `main` |
-| DuckDB file exists | no (TPC-H SF 1 probe generated and deleted; `data/` is empty) |
-| BigQuery sandbox project | created · sandbox, no billing · ID in local `.env` only · service accounts `dbt-reporter`, `dbt-finance` (no keys, no roles) |
+| Last milestone completed | **M01 — Project skeleton, `dbt_project.yml`, handbook tooling** (built 2026-10-09, published 2026-10-30) |
+| Next milestone | **M02 — The EL layer** |
+| Hours used | 8.0 of 40 (cap) · budgeted ahead: 29.5 h for M02–M18 + 0.5 h of audits · planned total 38.0 h · slack 2.0 h |
+| Schedule status | recalibrated on 2026-10-18 (DOCS-REVISION below): the same 19 milestones, M02–M18 at 1.5–2 h of real time each; no calendar dates; stop rule at 1.5× each budget |
+| Repo exists on GitHub | yes · `PCoronelPeris/dbt-wholesale-analytics` · public · no licence · 2 commits on `main` (initial commit + M01 squash merge) |
+| DuckDB file exists | yes, empty · `data/warehouse.duckdb` (12,288 bytes, no tables, created by `dbt debug`) · local only, git-ignored |
+| BigQuery sandbox project | created · sandbox, no billing · ID in local `.env` only (variable `GCP_PROJECT_ID`) · service accounts `dbt-reporter`, `dbt-finance` (no keys, no roles) |
 | Grants engine | **BigQuery** — the sandbox accepted `GRANT` (D-M00-1); R2 retired |
 | Raw schema loaded through date | — |
-| Handbook chapters | 1 (M00) |
-| Plan documents | charter v3, milestones v3, brief v3.1 (DOCS-REVISION 2026-09-29 b) |
-| Decisions | D1 exam date **2026-10-30** (confirmed) · D2 capacity 12 h/week (default) · D3 exposure tier A (default) |
+| dbt project | `transform/` · dbt-core 1.11.15 · python 3.12.3 · `dbt debug` passes on `dev` and `prod` · 0 models · schemas render as `{target.name}_{custom}` |
+| Handbook chapters | 2 (M00, M01) |
+| Plan documents | charter v4, milestones v4, brief v4 (2026-10-18) |
+| Decisions | D1 exam date kept out of the plan documents (2026-10-18) · D2 every milestone 1.5–2 h of real time · D3 exposure tier A (default) |
 | Open blockers | none |
 
 **Commands to restore working state at the start of the next session:**
@@ -35,8 +36,7 @@
 # Open Ubuntu from the Windows Start menu (or run `wsl ~` in PowerShell), then:
 cd ~/projects/dbt-wholesale-analytics
 source .venv/bin/activate
-git status        # expect: On branch main, nothing to commit, working tree clean
-dbt --version     # expect: core 1.11.15, plugins bigquery 1.11.3 and duckdb 1.11.0
+make start M=02   # expect: "Ready: M02 — The EL layer" and "Branch: m02-el-layer"
 ```
 
 ---
@@ -48,7 +48,7 @@ errors and reasoning go in the handbook chapter, not here.
 
 ````markdown
 ## M{NN} — {title}
-**Date:** YYYY-MM-DD · **Estimated:** Xh · **Actual:** Xh · **Hours used so far:** X of 39.65
+**Date:** YYYY-MM-DD · **Estimated:** Xh · **Actual:** Xh · **Hours used so far:** X of 40
 **Chapter:** `docs/handbook/m{NN}-{slug}.md`
 
 **Now exists that did not before**
@@ -88,13 +88,13 @@ errors and reasoning go in the handbook chapter, not here.
   "exam sample question 12" (it is practice Q12). Fixed. Practice answer keys that
   contradict the docs listed in `MILESTONES.md` Appendix B (Q28, Q42, Q47, Q53).
 - Documents still said "paste these files"; the workflow is now a claude.ai Project.
-- The BigQuery (charter §3.2, M25) and Fivetran wording decisions of 2026-09-18 were
+- The BigQuery (charter section 3.2, M25) and Fivetran wording decisions of 2026-09-18 were
   not yet in the Project documents. Applied.
 
 **Added**
-- Exposure policy, tier A (charter §2.1); licence changed from MIT to all rights reserved
-  (README §9); repo created with no licence (M00).
-- Capacity table and exam-date risk R7 (charter §2.2, §8, §10).
+- Exposure policy, tier A (charter section 2.1); licence changed from MIT to all rights reserved
+  (README section 9); repo created with no licence (M00).
+- Capacity table and exam-date risk R7 (charter section 2.2, section 8, section 10).
 - Model line per milestone; exact model names and settings (brief Part 4).
 - M26 — walkthrough finalization; `WALKTHROUGH.md` v0 (private).
 - `SESSION_PROTOCOL.md` v2 (private) and a Project instructions block.
@@ -109,12 +109,12 @@ errors and reasoning go in the handbook chapter, not here.
 
 **Found and fixed**
 - The pre-publish check lived only in `SESSION_PROTOCOL.md`, which no chat can read.
-  Copied verbatim into `AI_OPERATING_BRIEF.md` §3.13; every reference now points there.
+  Copied verbatim into `AI_OPERATING_BRIEF.md` section 3.13; every reference now points there.
 - M00 created the virtual environment and `requirements.txt` before the repo folder
   existed, and ran `gh auth login` after creating the repo. Reordered: tooling → login →
   repo → `.gitignore` → everything else.
 - M00's first commit contradicted "no commits to `main`": a new repo has no base branch
-  for a PR. Exception written into brief §3.10 and charter §6; the commit runs at close,
+  for a PR. Exception written into brief section 3.10 and charter section 6; the commit runs at close,
   with `git branch -M main` before the push.
 - M00 used a host `psql` that may not be installed; now uses the container's `psql`.
 - Actual hours were to be written in two places (log and `MILESTONES.md` Appendix A).
@@ -141,7 +141,7 @@ traceability; BigQuery and a BI tool for the portfolio.
   service accounts (M12); a `GRANT` probe in M00 decides it before anything depends on it.
 - Data Studio (the name of Looker Studio since April 2026) dashboard added (M18),
   cuttable to after the exam.
-- Handbook: one chapter per milestone, template frozen in the brief §3.14, index
+- Handbook: one chapter per milestone, template frozen in the brief section 3.14, index
   generated by `scripts/build_handbook_index.py` (tested). The chapter is closing
   deliverable 2; ADR files are replaced by `D-MNN-n` sections inside chapters.
 - Stop rule tightened from 2× to 1.5× the milestone budget. Phase audits reduced to two.
@@ -171,7 +171,7 @@ traceability; BigQuery and a BI tool for the portfolio.
 - Loader semantics fixed: `orders`/`lineitem` additive, other tables replaced; `--mutate`
   deletes suppliers physically so `hard_deletes` can see it (M02, M13).
 - Private models belong to group `core`; the M03 identifier drill is undone afterwards;
-  WIP closing and audit outputs defined (brief §2.2, §2.4); chapter metadata no longer
+  WIP closing and audit outputs defined (brief section 2.2, section 2.4); chapter metadata no longer
   asks for a PR number the chat cannot know.
 
 **Files and versions**
@@ -185,11 +185,11 @@ traceability; BigQuery and a BI tool for the portfolio.
 of a command, not what runs where, and described file edits instead of showing them.
 
 **Changed**
-- `AI_OPERATING_BRIEF.md` v3.1: §1.2 item 10 (analogies only when asked in that message,
-  never as a fallback); new §1.12 mechanism disclosure (eight points for every new tool,
-  file, setting or connection); new §1.13 command anatomy (token by token, one command
+- `AI_OPERATING_BRIEF.md` v3.1: section 1.2 item 10 (analogies only when asked in that message,
+  never as a fallback); new section 1.12 mechanism disclosure (eight points for every new tool,
+  file, setting or connection); new section 1.13 command anatomy (token by token, one command
   per line, say whether a block is pasted or typed).
-- Project instructions block names §1.12, §1.13 and BEFORE/AFTER edits.
+- Project instructions block names section 1.12, section 1.13 and BEFORE/AFTER edits.
 - Hours are counted inside M00's 4.0 h (not split).
 
 **Files and versions**
@@ -244,3 +244,129 @@ of a command, not what runs where, and described file edits instead of showing t
 
 **Commit**
 `main` (initial commit, no branch) → `chore: pin toolchain and verify local and cloud stack`
+
+## M01 — Project skeleton, `dbt_project.yml`, handbook tooling
+**Date:** 2026-10-09 (started 2026-10-08) · **Estimated:** 1.5h · **Actual:** 4.0h · **Hours used so far:** 8.0 of 40
+**Chapter:** `docs/handbook/m01-project-skeleton.md`
+
+**Now exists that did not before**
+- files (committed): `transform/dbt_project.yml` (40 lines), `transform/profiles.yml`
+  (15 lines), `transform/macros/generate_schema_name.sql` (8 lines), `.gitkeep` in
+  `transform/analyses`, `macros`, `models`, `seeds`, `snapshots` and `tests`,
+  `Makefile` (28 lines), `scripts/build_handbook_index.py` (72 lines),
+  `docs/handbook/README.md` (generated), `docs/handbook/m01-project-skeleton.md`,
+  `scripts/milestone.py` (added at the close, by the replan of 2026-10-18);
+  `.gitignore` gained `target/`, `dbt_packages/`, `logs/`, `.user.yml`;
+  `docs/PROJECT_LOG.md`, `docs/PROJECT_CHARTER.md` (v4), `docs/MILESTONES.md` (v4) and
+  `README.md` (v0.4) updated
+- files (local only, git-ignored): `data/warehouse.duckdb` (empty), `logs/`,
+  `transform/logs/`, `transform/target/`, `transform/.user.yml`
+- tools: python 3.12.3 (closes the open item of M00); GNU Make 4.3
+- schemas / tables: none (a throwaway model proved `dev_staging` and `prod_staging`, then
+  was deleted)
+- dbt resources: 0 models; one macro, `generate_schema_name`, which overrides the built-in
+
+**Deviations from the milestone as written**
+- `.user.yml` also ignored → D-M01-8
+- `make clean` also removes `data/*.duckdb.wal`; `make setup` does not upgrade pip → D-M01-9
+- `transform/models/.gitkeep` added so the folder survives a clone → D-M01-11
+- Files created with terminal heredocs, not an editor → D-M01-7
+- 4.0 h against 1.5 h: past the 1.5× stop rule. The exit criteria were met, so M01
+  closes as Done, not WIP. Main causes: the explanation format of the first responses had
+  to be rewritten and the milestone restarted from zero; the rest went into per-step
+  explanations and fixing four small errors (E-M01-1 to E-M01-4)
+
+**Binding for later milestones**
+- `profiles.yml` lives in `transform/` and is committed; every dbt command runs from
+  `transform/` → all (D-M01-1)
+- Schemas render as `{target.name}_{custom_schema_name}`; the `bq` target added in M12
+  must have a name that works as a BigQuery dataset prefix → M04–M06, M12 (D-M01-4)
+- Intermediate models are `ephemeral` by default → M05 overrides it if it needs a table
+  (D-M01-3)
+- `make` calls `.venv/bin/*` by absolute path, so it works without activating the
+  environment → all (D-M01-5)
+- The script that builds the handbook index is run, not imported; add `__pycache__/` to
+  `.gitignore` before any script imports another → M02 (D-M01-10)
+- After writing each chapter, run `make handbook` and compare the counts it prints with
+  the chapter's own tables → all
+- The warning about 3 unused configuration paths disappears when models exist → M04 to M06
+  (E-M01-3)
+
+**Registry changes**
+- Brief section 3.6, `make clean`: now also removes `data/*.duckdb.wal` (brief v3.4)
+- Brief section 3.6: `make start`, `make close`, `make fetch` added (brief v4)
+
+**Left open**
+- Dates and pace: resolved by the DOCS-REVISION of 2026-10-18 (next entry)
+- Editor for files inside WSL is still not chosen; not needed: files arrive whole, by
+  paste or by `make fetch` → closed
+- Audit A decides whether D-M00-8 stands → superseded: M18 is back in the 38.0 h plan and
+  is the first thing to move if the cap is at risk
+
+**Commit**
+`m01-project-skeleton` → `feat: scaffold dbt project, makefile and handbook index`
+
+## DOCS-REVISION — 2026-10-18
+
+**Why.** M00 and M01 were estimated at 1.5 h each and took 4.0 h each. The user asked for
+the same 19 milestones, each of the remaining ones at 1.5–2 h of real time, complete
+explanations of every line every time, no calendar dates, and a full review so that
+nothing breaks later.
+
+**Diagnosis of M01 (counted in the M01 chat)**
+- Restarted once from zero after the first responses explained too little; the brief was
+  rewritten in the middle of the milestone.
+- Delivered as 74 numbered steps: 57 to build and 17 to close, each a separate action with
+  its own paste-back.
+- Files typed in fragments: `dbt_project.yml` in four heredocs and the index script in
+  four, each followed by a size check.
+- Explanations went deep into shell mechanics (`cd`, `ls`, heredocs) while the
+  milestone-level picture (what is built, why, what the exam asks) came late, so the user
+  had to stop and work out the purpose of steps.
+- The close was 17 manual steps: download, copy, branch, add, check, commit, push, PR,
+  merge, pull.
+
+**Changed**
+- Brief v4: every line of every command and file is annotated every time, in a four-column
+  table (what it does, role in the project, link to dbt and the exam) (1.13); steps are
+  actions, files are never fragmented, long files arrive by `make fetch` (1.14); a new step
+  shape (1.15); a milestone map opens every milestone (1.17); the chat checks `main` on
+  GitHub at opening (2.1); one-command close (2.2); minutes tracked with the time tool
+  (2.3); a pre-testing recipe so every file is run before it is sent (2.5); current model
+  names (Part 4).
+- `scripts/milestone.py` with `make start M=NN`, `make close M=NN` and `make fetch F=...`,
+  tested against a local bare remote with a simulated `gh`: closes M01 from `main` with
+  uncommitted work, from an existing branch, and closes M02 after a fetch; stops with a
+  message when a download is missing.
+- `MILESTONES.md` v4: budgets in real hours (M02–M18 = 29.5 h; total 38.0 h), a Parts line
+  per milestone, no dates, M02 rewritten with the tested loader embedded, M15 adds the CI
+  badge. `PROJECT_CHARTER.md` v4: section 2.2 and section 10 without dates. README v0.4:
+  the clone URL points at the real repository; the CI badge waits for M15.
+- Loader design fixed before it is written. The v3 design replaced the six reference
+  tables on every load and let `--mutate` delete real suppliers. Two later failures
+  followed from it: line items would point at deleted suppliers and break the
+  `relationships` tests (M06, M10), and every reload would revert earlier mutations and
+  re-stamp every row, so a `timestamp` snapshot would record noise. Now reference tables
+  are created once and re-stamped, they carry `_updated_at`, and `--mutate` deletes five
+  synthetic suppliers with no parts.
+- D-M00-8 superseded: M18 is back in the plan.
+
+**Verified by running (2026-10-18, DuckDB 1.5.5, dbt-core 1.11.15, dbt-duckdb 1.11.0, SF 0.01)**
+- First wave through 1996-12-31: 8 tables, 11,367 orders, 45,730 line items, every
+  `_loaded_at` non-null, no line item without its order.
+- Second wave through 1997-06-30 inserts only the 1,153 new orders; the same window again
+  inserts 0.
+- `--mutate` changed 11 customer segments and 2 supplier balances and deleted the 5
+  synthetic suppliers; a second `--mutate` deleted 0.
+- A different scale factor without `--full-reset` stops with a message; `--full-reset`
+  starts over.
+- `dbt source freshness` on `_loaded_at` passes; `check` and `timestamp` snapshots with
+  `hard_deletes: new_record` record the changed rows and the 5 deletions.
+- `make load` passes `SF`, `THROUGH_DATE`, `MUTATE` and `RESET` through to the script.
+
+**Hours.** Not counted in milestone hours (work done by the assistant).
+
+**Files and versions**
+- `AI_OPERATING_BRIEF.md` v4 (private) · `PROJECT_CHARTER.md` v4 · `MILESTONES.md` v4 ·
+  `README.md` v0.4 · `PROJECT_LOG.md` (this entry) · `scripts/milestone.py` · Makefile
+  (`start`, `close`, `fetch`)

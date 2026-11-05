@@ -1,8 +1,6 @@
 # Wholesale Analytics — a production-shaped dbt project
 
-[![CI](https://github.com/PLACEHOLDER_USER/dbt-wholesale-analytics/actions/workflows/ci.yml/badge.svg)](https://github.com/PLACEHOLDER_USER/dbt-wholesale-analytics/actions)
-
-> **Status: v0.3 — living document.** Written at project start so the repo is
+> **Status: v0.4 — living document.** Written at project start so the repo is
 > self-describing from day one; rewritten in full at milestone M18 once every claim below
 > is backed by code. Anything marked `PLACEHOLDER_*` is a literal placeholder to be
 > replaced, not a real value.
@@ -55,7 +53,7 @@ only. Raw TPC-H is static, so the loader simulates what a real source does:
 |---|---|
 | Load metadata | Every raw table carries `_loaded_at` and `_batch_id` |
 | Incremental arrival | `--through-date` loads orders and line items in date-ordered waves |
-| Mutating dimensions | `--mutate` changes customer segments and supplier balances, and deletes suppliers |
+| Mutating dimensions | `--mutate` changes customer segments and supplier balances, and deletes five synthetic suppliers that supply no parts |
 
 This is the difference between a snapshot that tracks history and one that has never
 produced a second row.
@@ -99,7 +97,7 @@ running it on two engines.
 Requirements: Python 3.11+, Git. (Linux, macOS, or WSL2 on Windows.)
 
 ```bash
-git clone https://github.com/PLACEHOLDER_USER/dbt-wholesale-analytics.git
+git clone https://github.com/PCoronelPeris/dbt-wholesale-analytics.git
 cd dbt-wholesale-analytics
 
 make setup          # venv, pinned deps, dbt debug
@@ -121,7 +119,7 @@ Documentation site: `PLACEHOLDER_DOCS_URL` · Dashboard: `PLACEHOLDER_DASHBOARD_
 │   ├── MILESTONES.md             how the work was decomposed, and why
 │   └── PROJECT_LOG.md            plan versus reality, session by session
 ├── el/                           extract + load (DuckDB and BigQuery)
-├── scripts/                      handbook index generator
+├── scripts/                      handbook index generator, milestone start and close
 ├── transform/                    the dbt project
 │   ├── dbt_project.yml
 │   ├── profiles.yml              committed; every secret via env_var
