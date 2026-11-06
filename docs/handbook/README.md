@@ -17,6 +17,7 @@ Do not edit it by hand.
 |---|---|---|
 | [M00 — Prove the stack before building on it](m00-stack-verification.md) | Done · 2026-09-30 | 1.5 estimated · 4.0 actual |
 | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) | Done · 2026-10-09 | 1.5 estimated · 4.0 actual |
+| [M02 — The EL layer](m02-el-layer.md) | Done · 2026-11-06 | 1.5 estimated · 2.5 actual |
 
 ## Errors — every failure met while building
 
@@ -32,6 +33,8 @@ Do not edit it by hand.
 | E-M01-2 | `mv: cannot stat 'whole_analytics': No such file or directory` | Typed the first letters and used Tab completion | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
 | E-M01-3 | `[WARNING]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.` | Nothing to fix; the warning disappears when models arrive in M04 to M06 | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
 | E-M01-4 | `-bash: /home/pedro/projects/dbt-wholesale-analytics: Is a directory` | Typed `cd` before the path | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
+| E-M02-1 | The prompt kept printing `>` after the verification block was pasted | Ctrl+C, then the block was pasted again without indentation | [M02 — The EL layer](m02-el-layer.md) |
+| E-M02-2 | `IndentationError: unexpected indent` | The block was delivered again with every line starting at the first column | [M02 — The EL layer](m02-el-layer.md) |
 
 ## Decisions
 
@@ -56,6 +59,11 @@ Do not edit it by hand.
 | D-M01-9 | `make clean` also removes the `.wal` file, and `make setup` does not upgrade pip | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
 | D-M01-10 | The index script is run, not imported, and is not compiled in advance | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
 | D-M01-11 | `transform/models/.gitkeep` is added | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
+| D-M02-1 | The loader lives in `el/`, outside the dbt project | [M02 — The EL layer](m02-el-layer.md) |
+| D-M02-2 | The Makefile is edited with `sed` and `printf`, not pasted | [M02 — The EL layer](m02-el-layer.md) |
+| D-M02-3 | The load is checked with a read-only Python query, not with dbt | [M02 — The EL layer](m02-el-layer.md) |
+| D-M02-4 | A load and a dbt run never overlap | [M02 — The EL layer](m02-el-layer.md) |
+| D-M02-5 | Build-side files move to one folder at the final revision | [M02 — The EL layer](m02-el-layer.md) |
 
 ## Glossary
 
@@ -68,32 +76,45 @@ Do not edit it by hand.
 | `env_var` | A Jinja function that reads an environment variable and accepts a default value | [M01](m01-project-skeleton.md) |
 | `generate_schema_name` | The macro dbt calls to decide the schema of every model; defining it in a project replaces the built-in one | [M01](m01-project-skeleton.md) |
 | `GRANT` | A data control language statement that gives an identity a role on a resource | [M00](m00-stack-verification.md) |
+| `information_schema` | Standard views inside a database that describe its schemas, tables and columns | [M02](m02-el-layer.md) |
 | `profiles.yml` | The file that holds connection settings; dbt reads it from the current folder first and then from `~/.dbt` | [M01](m01-project-skeleton.md) |
+| `raw` schema | The schema that holds data exactly as it was loaded, before any transformation | [M02](m02-el-layer.md) |
 | `require-dbt-version` | A `dbt_project.yml` key that limits which dbt versions may run the project | [M01](m01-project-skeleton.md) |
 | Adapter | The dbt package that translates dbt's work into one database engine, such as dbt-duckdb or dbt-bigquery | [M00](m00-stack-verification.md) |
 | BigQuery sandbox | The free, no-billing mode of BigQuery: 10 GiB storage, 1 TiB of queries a month, tables expire after 60 days, no DML | [M00](m00-stack-verification.md) |
 | Custom schema | A schema set with `+schema` on a model or folder, which dbt combines with the target through `generate_schema_name` | [M01](m01-project-skeleton.md) |
+| Date wave | One run of the loader that adds the orders up to a later date | [M02](m02-el-layer.md) |
 | dbt project | A folder that contains a `dbt_project.yml` file; dbt finds it in the current folder or in a parent folder, never in a subfolder | [M01](m01-project-skeleton.md) |
 | Dry run | A run that prints the commands without executing them; `make -n` does this | [M01](m01-project-skeleton.md) |
+| DuckDB extension | An optional module that DuckDB downloads once into `~/.duckdb/extensions/` and loads on request, such as `tpch` | [M02](m02-el-layer.md) |
+| EL / ELT | Extract and load: copying data from source systems into the warehouse; ELT means the transformation (T, done by dbt) happens after loading, inside the warehouse | [M02](m02-el-layer.md) |
 | Exit code | The number a command returns when it ends; 0 means success and any other number means failure | [M01](m01-project-skeleton.md) |
 | Heredoc | A shell construct that feeds the lines up to a closing word into a command as its input | [M00](m00-stack-verification.md) |
 | IAM role | A named set of permissions in Google Cloud, such as `roles/bigquery.dataViewer` | [M00](m00-stack-verification.md) |
+| Idempotent | Running the same operation twice leaves the same result as running it once | [M02](m02-el-layer.md) |
 | Jinja | The templating language dbt uses; `{{ }}` prints a value and `{% %}` runs logic | [M01](m01-project-skeleton.md) |
 | Linux distribution | A Linux kernel plus the everyday programs and package manager around it; Ubuntu is one | [M00](m00-stack-verification.md) |
+| Load metadata | Columns a loader adds to every row, such as `_loaded_at` (when it was loaded) and `_batch_id` (which run loaded it) | [M02](m02-el-layer.md) |
 | Macro | A reusable block of Jinja code, written in a `.sql` file inside `macros/` | [M01](m01-project-skeleton.md) |
 | Make target | The name before the colon in a Makefile, such as `test`; `make test` runs its recipe | [M01](m01-project-skeleton.md) |
 | Makefile | A file named `Makefile` with named recipes that the program `make` runs | [M01](m01-project-skeleton.md) |
 | Materialization | The way dbt stores a model in the warehouse: view, table, ephemeral, incremental and others | [M01](m01-project-skeleton.md) |
+| Orphan row | A row whose foreign key points to no row in the referenced table, found with `left join ... where key is null` | [M02](m02-el-layer.md) |
 | Partial parsing | dbt reuses the saved result of the last parse and re-reads only what changed; a change of target or profile forces a full parse | [M01](m01-project-skeleton.md) |
 | Profile | A named block in `profiles.yml`; the project picks one with the `profile` key | [M01](m01-project-skeleton.md) |
 | Regular expression | A pattern that describes text to find, used by the index script to locate headings and IDs | [M01](m01-project-skeleton.md) |
 | Remote | Another copy of the same Git repository, registered by name and URL in `.git/config`; here `origin` is GitHub | [M00](m00-stack-verification.md) |
+| Scale factor | The size multiplier of TPC-H; scale factor 1 has 1,500,000 orders | [M02](m02-el-layer.md) |
+| Schema | A named group of tables inside a database; the full name of a table is `database.schema.table` | [M02](m02-el-layer.md) |
 | Service account | A Google Cloud identity for programs; without a key nobody can sign in as it | [M00](m00-stack-verification.md) |
 | Shell | A program that reads a line of text and runs the program it names; bash is the shell used here | [M00](m00-stack-verification.md) |
+| Single writer | DuckDB's rule that only one process may write to a database file at a time | [M02](m02-el-layer.md) |
 | Staging area | The list of files and contents that the next commit will contain, stored in `.git/index` | [M00](m00-stack-verification.md) |
+| Synthetic supplier | A supplier added by the loader with no parts, so that deleting it breaks no reference | [M02](m02-el-layer.md) |
 | Target | One named connection setting inside a profile, such as `dev` or `prod`, chosen with `--target` | [M01](m01-project-skeleton.md) |
 | Threads | The number of models dbt may build at the same time on a target | [M01](m01-project-skeleton.md) |
 | TPC-H | A standard benchmark schema of a wholesale business, generated deterministically at a chosen scale factor | [M00](m00-stack-verification.md) |
+| Transaction | A group of statements that is applied completely or not at all | [M02](m02-el-layer.md) |
 | Virtual environment | A folder with its own set of Python packages, activated per terminal so that python, pip and dbt resolve to it | [M00](m00-stack-verification.md) |
 | WSL2 | A Windows feature that runs a real Linux kernel in a lightweight virtual machine and connects it to Windows for files, network and terminal | [M00](m00-stack-verification.md) |
 | YAML | A text format of keys and values where indentation, made only of spaces, shows nesting | [M01](m01-project-skeleton.md) |

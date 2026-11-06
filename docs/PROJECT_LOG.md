@@ -15,19 +15,19 @@
 
 | Field | Value |
 |---|---|
-| Last milestone completed | **M01 — Project skeleton, `dbt_project.yml`, handbook tooling** (built 2026-10-09, published 2026-10-30) |
-| Next milestone | **M02 — The EL layer** |
-| Hours used | 8.0 of 40 (cap) · budgeted ahead: 29.5 h for M02–M18 + 0.5 h of audits · planned total 38.0 h · slack 2.0 h |
-| Schedule status | recalibrated on 2026-10-18 (DOCS-REVISION below): the same 19 milestones, M02–M18 at 1.5–2 h of real time each; no calendar dates; stop rule at 1.5× each budget |
-| Repo exists on GitHub | yes · `PCoronelPeris/dbt-wholesale-analytics` · public · no licence · 2 commits on `main` (initial commit + M01 squash merge) |
-| DuckDB file exists | yes, empty · `data/warehouse.duckdb` (12,288 bytes, no tables, created by `dbt debug`) · local only, git-ignored |
+| Last milestone completed | **M02 — The EL layer** (2026-11-06) |
+| Next milestone | **M03 — Sources, freshness, and dependency verification** |
+| Hours used | 10.5 of 40 (cap) · budgeted ahead: 28.0 h for M03–M18 + 0.5 h of audits · planned total 39.0 h · slack 1.0 h |
+| Schedule status | same 19 milestones, M03–M18 at 1.5–2 h each; stop rule at 1.5× each budget; a final-revision milestone (proposed M19, 1.5 h) would pass the cap and is decided at Audit A |
+| Repo exists on GitHub | yes · `PCoronelPeris/dbt-wholesale-analytics` · public · no licence · 3 commits on `main` (initial commit, M01 and M02 squash merges) |
+| DuckDB file exists | yes · `data/warehouse.duckdb` · schema `raw` with 8 tables · local only, git-ignored |
 | BigQuery sandbox project | created · sandbox, no billing · ID in local `.env` only (variable `GCP_PROJECT_ID`) · service accounts `dbt-reporter`, `dbt-finance` (no keys, no roles) |
 | Grants engine | **BigQuery** — the sandbox accepted `GRANT` (D-M00-1); R2 retired |
-| Raw schema loaded through date | — |
+| Raw schema loaded through date | **1996-12-31** · scale factor 1 · one batch · 1,138,594 orders, 4,556,169 line items |
 | dbt project | `transform/` · dbt-core 1.11.15 · python 3.12.3 · `dbt debug` passes on `dev` and `prod` · 0 models · schemas render as `{target.name}_{custom}` |
-| Handbook chapters | 2 (M00, M01) |
+| Handbook chapters | 3 (M00, M01, M02) |
 | Plan documents | charter v4, milestones v4, brief v4 (2026-10-18) |
-| Decisions | D1 exam date kept out of the plan documents (2026-10-18) · D2 every milestone 1.5–2 h of real time · D3 exposure tier A (default) |
+| Decisions | D1 exam date kept out of the plan documents (2026-10-18) · D2 every milestone 1.5–2 h of real time · D3 exposure tier A (default) · D4 build-side files grouped in one folder at the final revision (2026-11-05) · D5 explanations start from the whole map, in plain language, with the step count of each part (2026-11-05) |
 | Open blockers | none |
 
 **Commands to restore working state at the start of the next session:**
@@ -36,7 +36,7 @@
 # Open Ubuntu from the Windows Start menu (or run `wsl ~` in PowerShell), then:
 cd ~/projects/dbt-wholesale-analytics
 source .venv/bin/activate
-make start M=02   # expect: "Ready: M02 — The EL layer" and "Branch: m02-el-layer"
+make start M=03   # expect: "Ready: M03 — Sources, freshness, and dependency verification" and "Branch: m03-sources"
 ```
 
 ---
@@ -370,3 +370,79 @@ nothing breaks later.
 - `AI_OPERATING_BRIEF.md` v4 (private) · `PROJECT_CHARTER.md` v4 · `MILESTONES.md` v4 ·
   `README.md` v0.4 · `PROJECT_LOG.md` (this entry) · `scripts/milestone.py` · Makefile
   (`start`, `close`, `fetch`)
+
+## DOCS-REVISION — 2026-11-05
+
+**Why.** Requirements stated by the user during M02, before and after part 1.
+
+**Recorded**
+- At the end of the project every file is reviewed and corrected where needed (README,
+  handbook, plan documents), and the project is proven to work from a clean clone:
+  `make setup && make load && make build` with 0 errors, CI green on `main`, every link in
+  README and docs resolves, the pre-publish check prints two `OK` lines.
+- A private walkthrough (15–20 minutes, git-ignored) is written from the finished
+  repository, not from the plan.
+- The milestone tooling stays in the repository. Build-side files (plan documents,
+  handbook, `scripts/`, the `start`/`close`/`fetch` targets) move to one dedicated folder
+  at the final revision (D-M02-5).
+- Explanations start from the whole map (what exists, what is missing, what this
+  milestone adds), use plain language, and replace the per-token tables with a short
+  explanation of each command and of everything it triggers underneath. Every milestone
+  map states how many steps each part has.
+- A final-revision milestone (proposed M19, 1.5 h) would bring the plan to 40.5 h, over
+  the cap. Audit A decides it with real hours; M18 is the first to move.
+
+**Found and left for the final revision**
+- 40 lines in committed documents name private files or a private local folder that a
+  reader of the repository cannot open.
+- This log said M01 was published on 2026-10-30; the M01 squash commit on `main` is dated
+  2026-11-05. Fixed in the Current state block.
+
+**Hours.** Not counted in milestone hours.
+
+## M02 — The EL layer
+**Date:** 2026-11-06 (started 2026-11-05) · **Estimated:** 1.5h · **Actual:** 2.5h (estimated from session timestamps) · **Hours used so far:** 10.5 of 40
+**Chapter:** `docs/handbook/m02-el-layer.md`
+
+**Now exists that did not before**
+- files (committed): `el/load_raw.py` (167 lines, 8,035 bytes), `el/README.md`
+  (37 lines, 2,056 bytes); `Makefile` gained the `load` target and `load` in `.PHONY`;
+  `.gitignore` gained `__pycache__/`
+- files (local only): `data/warehouse.duckdb` with schema `raw`;
+  `~/.duckdb/extensions/<duckdb version>/linux_amd64/tpch.duckdb_extension` (outside the
+  repo, downloaded by DuckDB on the first load)
+- schemas / tables: `raw.region` 5 · `raw.nation` 25 · `raw.part` 200,000 ·
+  `raw.supplier` 10,005 (5 synthetic) · `raw.partsupp` 800,000 · `raw.customer` 150,000 ·
+  `raw.orders` 1,138,594 · `raw.lineitem` 4,556,169; orders through 1996-12-31; every
+  row has `_loaded_at` and `_batch_id`; reference tables also have `_updated_at`
+- dbt resources: none
+
+**Deviations from the milestone as written**
+- The Makefile and `.gitignore` were changed with `sed` and `printf` → D-M02-2
+- The verification block failed twice because it was delivered indented (E-M02-1,
+  E-M02-2)
+- 2.5 h against 1.5 h: past the 1.5× stop rule. The exit criteria were met, so M02 closes
+  as Done. Main causes: the explanation method was rewritten in the middle of the
+  milestone (DOCS-REVISION 2026-11-05) and conceptual questions about the environment
+  (DuckDB, `.venv`, make, git) were answered before part 2
+
+**Binding for later milestones**
+- M03 declares the 8 tables of `raw` as sources; freshness uses `_loaded_at` → M03
+- Later waves use `make load THROUGH_DATE=<later date>`; the scale factor stays 1 →
+  M08, M09
+- `make load MUTATE=1` produces the changes and deletions for snapshots; snapshots use
+  `_updated_at`, never `_loaded_at` → M13
+- A load and a dbt run never overlap on the DuckDB file → all (D-M02-4)
+- Code blocks meant to be pasted are never indented → all (E-M02-1)
+
+**Registry changes**
+- (none) — `make load` and the loader flags match the milestone as written
+
+**Left open**
+- `duckdb` is not pinned in `requirements.txt`; it arrives as a dependency of
+  `dbt-duckdb` → M03 decides whether to pin it
+- Moving build-side files to one folder → final revision (D-M02-5)
+- Proposed final-revision milestone → Audit A
+
+**Commit**
+`m02-el-layer` → `feat(el): add TPC-H loader with load metadata and date waves`

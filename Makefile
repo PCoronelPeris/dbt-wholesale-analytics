@@ -6,7 +6,7 @@ PYTHON := $(VENV)/bin/python
 DBT := $(VENV)/bin/dbt
 DBT_DIR := transform
 
-.PHONY: setup build test handbook clean start close fetch
+.PHONY: setup build test handbook clean start close fetch load
 
 setup:
 	mkdir -p data
@@ -35,3 +35,6 @@ close:
 
 fetch:
 	$(PYTHON) scripts/milestone.py fetch $(F)
+
+load:
+	$(PYTHON) el/load_raw.py $(if $(SF),--scale-factor $(SF)) $(if $(THROUGH_DATE),--through-date $(THROUGH_DATE)) $(if $(MUTATE),--mutate) $(if $(RESET),--full-reset)
