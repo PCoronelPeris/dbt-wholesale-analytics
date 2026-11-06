@@ -18,6 +18,7 @@ Do not edit it by hand.
 | [M00 — Prove the stack before building on it](m00-stack-verification.md) | Done · 2026-09-30 | 1.5 estimated · 4.0 actual |
 | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) | Done · 2026-10-09 | 1.5 estimated · 4.0 actual |
 | [M02 — The EL layer](m02-el-layer.md) | Done · 2026-11-06 | 1.5 estimated · 2.5 actual |
+| [M03 — Sources, freshness, and dependency verification](m03-sources.md) | Done · 2026-11-06 | 1.5 estimated · 1.9 actual |
 
 ## Errors — every failure met while building
 
@@ -35,6 +36,8 @@ Do not edit it by hand.
 | E-M01-4 | `-bash: /home/pedro/projects/dbt-wholesale-analytics: Is a directory` | Typed `cd` before the path | [M01 — Project skeleton, `dbt_project.yml`, handbook tooling](m01-project-skeleton.md) |
 | E-M02-1 | The prompt kept printing `>` after the verification block was pasted | Ctrl+C, then the block was pasted again without indentation | [M02 — The EL layer](m02-el-layer.md) |
 | E-M02-2 | `IndentationError: unexpected indent` | The block was delivered again with every line starting at the first column | [M02 — The EL layer](m02-el-layer.md) |
+| E-M03-1 | Runtime Error in test source_not_null_tpch_raw_part_p_partkey: Catalog Error: Table with name part does not exist! Did you mean "partsupp"? LINE 18: from "warehouse"."raw"."part" | Added identifier: part_renamed to the table part in the YAML, then undid both the rename and the line | [M03 — Sources, freshness, and dependency verification](m03-sources.md) |
+| E-M03-2 | STOPPED: _tpch__sources.yml is not in your Downloads folder; download it from the chat, then make: *** [Makefile:37: fetch] Error 1 | Downloaded the file, checked it was in Downloads, ran the same command again | [M03 — Sources, freshness, and dependency verification](m03-sources.md) |
 
 ## Decisions
 
@@ -64,6 +67,10 @@ Do not edit it by hand.
 | D-M02-3 | The load is checked with a read-only Python query, not with dbt | [M02 — The EL layer](m02-el-layer.md) |
 | D-M02-4 | A load and a dbt run never overlap | [M02 — The EL layer](m02-el-layer.md) |
 | D-M02-5 | Build-side files move to one folder at the final revision | [M02 — The EL layer](m02-el-layer.md) |
+| D-M03-1 | `lineitem` is exposed to dbt as `line_items` | [M03 — Sources, freshness, and dependency verification](m03-sources.md) |
+| D-M03-2 | `region` is exempt from freshness and `orders` has stricter thresholds | [M03 — Sources, freshness, and dependency verification](m03-sources.md) |
+| D-M03-3 | Uniqueness of two-column keys waits for `dbt_utils` | [M03 — Sources, freshness, and dependency verification](m03-sources.md) |
+| D-M03-4 | `duckdb` stays unpinned in `requirements.txt` | [M03 — Sources, freshness, and dependency verification](m03-sources.md) |
 
 ## Glossary
 
@@ -72,23 +79,38 @@ Do not edit it by hand.
 | `.gitignore` | A file of patterns naming untracked files that Git will not stage | [M00](m00-stack-verification.md) |
 | `.gitkeep` | An empty file, by convention, that lets Git keep a folder that would otherwise be empty | [M01](m01-project-skeleton.md) |
 | `.PHONY` | A Makefile line that tells make a target is a recipe name and not a file | [M01](m01-project-skeleton.md) |
+| `arguments` (in a test) | The key that holds the settings of a generic test in dbt 1.11, such as `to` and `field` | [M03](m03-sources.md) |
 | `dbt_project.yml` | The file that names a dbt project and sets its folder paths, defaults and version limits | [M01](m01-project-skeleton.md) |
 | `env_var` | A Jinja function that reads an environment variable and accepts a default value | [M01](m01-project-skeleton.md) |
+| `ERROR` and `FAIL` | A test is `ERROR` when its SQL could not run, and `FAIL n` when it ran and returned n rows; the final summary counts both under `ERROR` | [M03](m03-sources.md) |
+| `freshness: null` | The setting that removes the freshness check from one table | [M03](m03-sources.md) |
 | `generate_schema_name` | The macro dbt calls to decide the schema of every model; defining it in a project replaces the built-in one | [M01](m01-project-skeleton.md) |
 | `GRANT` | A data control language statement that gives an identity a role on a resource | [M00](m00-stack-verification.md) |
+| `identifier` | A table property that sets the physical table name when it differs from the table `name` | [M03](m03-sources.md) |
 | `information_schema` | Standard views inside a database that describe its schemas, tables and columns | [M02](m02-el-layer.md) |
+| `loaded_at_field` | The column that freshness reads to find the newest load | [M03](m03-sources.md) |
 | `profiles.yml` | The file that holds connection settings; dbt reads it from the current folder first and then from `~/.dbt` | [M01](m01-project-skeleton.md) |
 | `raw` schema | The schema that holds data exactly as it was loaded, before any transformation | [M02](m02-el-layer.md) |
+| `relationships` test | A test that fails when a value in one column has no match in a column of another table | [M03](m03-sources.md) |
 | `require-dbt-version` | A `dbt_project.yml` key that limits which dbt versions may run the project | [M01](m01-project-skeleton.md) |
+| `schema` (in a source) | The physical schema where the source tables live; it can differ from the source name | [M03](m03-sources.md) |
+| `source()` | The function a model calls to read a declared source table; its two arguments are the source name and the table name | [M03](m03-sources.md) |
+| `source:` selector | A node selection that picks a source; with `+` at the end it also picks everything that depends on it | [M03](m03-sources.md) |
+| `sources.json` | The file `dbt source freshness` writes in `target/`, with one result per table | [M03](m03-sources.md) |
+| `warn_after` and `error_after` | The two age thresholds of a freshness policy; passing the first gives `warn`, passing the second gives `error` | [M03](m03-sources.md) |
 | Adapter | The dbt package that translates dbt's work into one database engine, such as dbt-duckdb or dbt-bigquery | [M00](m00-stack-verification.md) |
 | BigQuery sandbox | The free, no-billing mode of BigQuery: 10 GiB storage, 1 TiB of queries a month, tables expire after 60 days, no DML | [M00](m00-stack-verification.md) |
+| Catalog Error | The DuckDB error returned when a statement names a table or schema that does not exist | [M03](m03-sources.md) |
+| Composite key | A key made of two or more columns, such as (`ps_partkey`, `ps_suppkey`) | [M03](m03-sources.md) |
 | Custom schema | A schema set with `+schema` on a model or folder, which dbt combines with the target through `generate_schema_name` | [M01](m01-project-skeleton.md) |
+| Data test | A query that selects the rows that break a rule; it passes when it returns zero rows | [M03](m03-sources.md) |
 | Date wave | One run of the loader that adds the orders up to a later date | [M02](m02-el-layer.md) |
 | dbt project | A folder that contains a `dbt_project.yml` file; dbt finds it in the current folder or in a parent folder, never in a subfolder | [M01](m01-project-skeleton.md) |
 | Dry run | A run that prints the commands without executing them; `make -n` does this | [M01](m01-project-skeleton.md) |
 | DuckDB extension | An optional module that DuckDB downloads once into `~/.duckdb/extensions/` and loads on request, such as `tpch` | [M02](m02-el-layer.md) |
 | EL / ELT | Extract and load: copying data from source systems into the warehouse; ELT means the transformation (T, done by dbt) happens after loading, inside the warehouse | [M02](m02-el-layer.md) |
 | Exit code | The number a command returns when it ends; 0 means success and any other number means failure | [M01](m01-project-skeleton.md) |
+| Freshness | The age of the newest row of a table, measured as the current time minus the maximum of `loaded_at_field` | [M03](m03-sources.md) |
 | Heredoc | A shell construct that feeds the lines up to a closing word into a command as its input | [M00](m00-stack-verification.md) |
 | IAM role | A named set of permissions in Google Cloud, such as `roles/bigquery.dataViewer` | [M00](m00-stack-verification.md) |
 | Idempotent | Running the same operation twice leaves the same result as running it once | [M02](m02-el-layer.md) |
@@ -104,11 +126,13 @@ Do not edit it by hand.
 | Profile | A named block in `profiles.yml`; the project picks one with the `profile` key | [M01](m01-project-skeleton.md) |
 | Regular expression | A pattern that describes text to find, used by the index script to locate headings and IDs | [M01](m01-project-skeleton.md) |
 | Remote | Another copy of the same Git repository, registered by name and URL in `.git/config`; here `origin` is GitHub | [M00](m00-stack-verification.md) |
+| Runtime error | A failure that appears when dbt runs SQL in the warehouse, not when it reads the YAML | [M03](m03-sources.md) |
 | Scale factor | The size multiplier of TPC-H; scale factor 1 has 1,500,000 orders | [M02](m02-el-layer.md) |
 | Schema | A named group of tables inside a database; the full name of a table is `database.schema.table` | [M02](m02-el-layer.md) |
 | Service account | A Google Cloud identity for programs; without a key nobody can sign in as it | [M00](m00-stack-verification.md) |
 | Shell | A program that reads a line of text and runs the program it names; bash is the shell used here | [M00](m00-stack-verification.md) |
 | Single writer | DuckDB's rule that only one process may write to a database file at a time | [M02](m02-el-layer.md) |
+| Source | A table that dbt did not create, declared in YAML so models can read it with `source()` and dbt can test it and check its freshness | [M03](m03-sources.md) |
 | Staging area | The list of files and contents that the next commit will contain, stored in `.git/index` | [M00](m00-stack-verification.md) |
 | Synthetic supplier | A supplier added by the loader with no parts, so that deleting it breaks no reference | [M02](m02-el-layer.md) |
 | Target | One named connection setting inside a profile, such as `dev` or `prod`, chosen with `--target` | [M01](m01-project-skeleton.md) |

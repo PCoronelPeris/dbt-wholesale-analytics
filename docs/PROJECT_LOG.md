@@ -15,19 +15,19 @@
 
 | Field | Value |
 |---|---|
-| Last milestone completed | **M02 — The EL layer** (2026-11-06) |
-| Next milestone | **M03 — Sources, freshness, and dependency verification** |
-| Hours used | 10.5 of 40 (cap) · budgeted ahead: 28.0 h for M03–M18 + 0.5 h of audits · planned total 39.0 h · slack 1.0 h |
-| Schedule status | same 19 milestones, M03–M18 at 1.5–2 h each; stop rule at 1.5× each budget; a final-revision milestone (proposed M19, 1.5 h) would pass the cap and is decided at Audit A |
-| Repo exists on GitHub | yes · `PCoronelPeris/dbt-wholesale-analytics` · public · no licence · 3 commits on `main` (initial commit, M01 and M02 squash merges) |
+| Last milestone completed | **M03 — Sources, freshness, and dependency verification** (2026-11-06) |
+| Next milestone | **M04 — Staging layer, seeds and packages** |
+| Hours used | 12.4 of 40 (cap) · budgeted ahead: 26.5 h for M04–M18 + 0.5 h of audits · planned total 39.4 h · slack 0.6 h |
+| Schedule status | same 19 milestones, M04–M18 at 1.5–2 h each; stop rule at 1.5× each budget; a final-revision milestone (proposed M19, 1.5 h) would bring the plan to 40.9 h, over the cap, and is decided at Audit A |
+| Repo exists on GitHub | yes · `PCoronelPeris/dbt-wholesale-analytics` · public · no licence · 4 commits on `main` (initial commit, M01, M02 and M03 squash merges) |
 | DuckDB file exists | yes · `data/warehouse.duckdb` · schema `raw` with 8 tables · local only, git-ignored |
 | BigQuery sandbox project | created · sandbox, no billing · ID in local `.env` only (variable `GCP_PROJECT_ID`) · service accounts `dbt-reporter`, `dbt-finance` (no keys, no roles) |
 | Grants engine | **BigQuery** — the sandbox accepted `GRANT` (D-M00-1); R2 retired |
-| Raw schema loaded through date | **1996-12-31** · scale factor 1 · one batch · 1,138,594 orders, 4,556,169 line items |
-| dbt project | `transform/` · dbt-core 1.11.15 · python 3.12.3 · `dbt debug` passes on `dev` and `prod` · 0 models · schemas render as `{target.name}_{custom}` |
-| Handbook chapters | 3 (M00, M01, M02) |
+| Raw schema loaded through date | **1996-12-31** · scale factor 1 · 1,138,594 orders, 4,556,169 line items · loaded again with the same window in M03 (the six reference tables re-stamped at 2026-11-06 19:26:32 UTC; `orders` and `lineitem` still at 17:38:51 UTC) |
+| dbt project | `transform/` · dbt-core 1.11.15 · python 3.12.3 · `dbt debug` passes on `dev` and `prod` · 0 models · 1 source (`tpch_raw`, 8 tables) · 18 data tests · schemas render as `{target.name}_{custom}` |
+| Handbook chapters | 4 (M00, M01, M02, M03) |
 | Plan documents | charter v4, milestones v4, brief v4 (2026-10-18) |
-| Decisions | D1 exam date kept out of the plan documents (2026-10-18) · D2 every milestone 1.5–2 h of real time · D3 exposure tier A (default) · D4 build-side files grouped in one folder at the final revision (2026-11-05) · D5 explanations start from the whole map, in plain language, with the step count of each part (2026-11-05) |
+| Decisions | D1 exam date kept out of the plan documents (2026-10-18) · D2 every milestone 1.5–2 h of real time · D3 exposure tier A (default) · D4 build-side files grouped in one folder at the final revision (2026-11-05) · D5 explanations start from the whole map, in plain language, with the step count of each part (2026-11-05) · D-M03-1 to D-M03-4 in the M03 chapter |
 | Open blockers | none |
 
 **Commands to restore working state at the start of the next session:**
@@ -36,7 +36,7 @@
 # Open Ubuntu from the Windows Start menu (or run `wsl ~` in PowerShell), then:
 cd ~/projects/dbt-wholesale-analytics
 source .venv/bin/activate
-make start M=03   # expect: "Ready: M03 — Sources, freshness, and dependency verification" and "Branch: m03-sources"
+make start M=04   # expect: "Ready: M04 — Staging layer, seeds and packages" and "Branch: m04-staging-seeds-packages"
 ```
 
 ---
@@ -446,3 +446,65 @@ nothing breaks later.
 
 **Commit**
 `m02-el-layer` → `feat(el): add TPC-H loader with load metadata and date waves`
+
+## M03 — Sources, freshness, and dependency verification
+**Date:** 2026-11-06 (started 2026-11-06, 15:05 local) · **Estimated:** 1.5h · **Actual:** 1.9h (estimated from session timestamps) · **Hours used so far:** 12.4 of 40
+**Chapter:** `docs/handbook/m03-sources.md`
+
+**Now exists that did not before**
+- files (committed): `transform/models/staging/tpch/_tpch__sources.yml` (109 lines,
+  3,739 bytes); `Makefile` gained the `freshness` target and `freshness` in `.PHONY`
+- files (local only): `transform/target/sources.json`, rewritten by every
+  `make freshness`
+- schemas / tables: no new tables. The loader ran again with the same window: the six
+  reference tables were re-stamped, `orders` and `lineitem` were not changed. During the
+  drill `raw.part` was renamed and renamed back; the net change is none
+- dbt resources: 1 source `tpch_raw` (`schema: raw`, 8 tables, `loaded_at_field:
+  _loaded_at`, freshness warn 12 h / error 24 h); `region` exempt (`freshness: null`);
+  `orders` override warn 6 h / error 12 h; `line_items` with `identifier: lineitem`;
+  18 data tests; 0 models
+
+**Deviations from the milestone as written**
+- 1.9 h against 1.5 h: over the budget, under the stop rule (2.25 h). The exit criteria
+  were met, so M03 closes as Done. Main causes: a stop in part 1 (a file not yet
+  downloaded when `make fetch` ran, E-M03-2) and a request in the middle of part 1 to
+  explain what the milestone is, answered before part 2
+- Composite keys of `partsupp` and `line_items` get `not_null` only; the uniqueness of
+  the pairs waits for `dbt_utils` → D-M03-3
+- The exit criterion `dbt test --select source:tpch_raw` was met through `make test`
+  (all 18 tests of the project are source tests); the literal selector was run only in
+  the sandbox
+- `_tpch__sources.yml` was delivered twice by design: without tests in part 1, with
+  tests in part 2
+
+**Binding for later milestones**
+- The source table is named `line_items`; the physical table is `raw.lineitem`. Models
+  call `source('tpch_raw', 'line_items')` → M04, M09 (D-M03-1). M09 puts `event_time` on
+  the source `line_items`
+- The source table `region` has no freshness check; `orders` has its own thresholds →
+  M14 (`source_status:fresher+`) (D-M03-2)
+- Tests on sources use `data_tests:` and, for `relationships`, `arguments:` → M04, M10
+- Uniqueness of (`ps_partkey`, `ps_suppkey`) and (`l_orderkey`, `l_linenumber`) →
+  M04 with `dbt_utils` (D-M03-3)
+- `make freshness` exists; `--select "source:tpch_raw+"` selects the source and its
+  descendants → all
+- Download a file before running `make fetch` for it; small files can also be pasted →
+  all (E-M03-2)
+- `raw.part` and `_tpch__sources.yml` are back to their original state; the hash of the
+  file is `03f5977f64876113cba88b27243fd595`
+
+**Registry changes**
+- (none) — `make freshness` and the file name `_tpch__sources.yml` match brief 3.6 and
+  3.8. Separately, brief 1.13 still describes the per-token tables that the
+  DOCS-REVISION of 2026-11-05 replaced; the brief has not been edited → final revision
+
+**Left open**
+- `dbt deps` was not tested in the sandbox because `hub.getdbt.com` answered 403; M04
+  pre-tests the packages from GitHub, and the user's machine runs the real command → M04
+- `duckdb` stays unpinned (D-M03-4) → M15 revisits it for CI
+- Brief 1.13 text against the practice of the last milestones → final revision / Audit A
+- The copy of this log in Project knowledge stopped at M01 before this close; it was
+  replaced by this file → closed
+
+**Commit**
+`m03-sources` → `feat(staging): declare tpch sources with freshness policies`
