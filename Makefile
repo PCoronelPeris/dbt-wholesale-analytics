@@ -6,7 +6,7 @@ PYTHON := $(VENV)/bin/python
 DBT := $(VENV)/bin/dbt
 DBT_DIR := transform
 
-.PHONY: setup build test handbook clean start close fetch load
+.PHONY: setup build test handbook clean start close fetch load freshness
 
 setup:
 	mkdir -p data
@@ -38,3 +38,6 @@ fetch:
 
 load:
 	$(PYTHON) el/load_raw.py $(if $(SF),--scale-factor $(SF)) $(if $(THROUGH_DATE),--through-date $(THROUGH_DATE)) $(if $(MUTATE),--mutate) $(if $(RESET),--full-reset)
+
+freshness:
+	cd $(DBT_DIR) && $(DBT) source freshness

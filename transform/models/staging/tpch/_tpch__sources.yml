@@ -1,0 +1,109 @@
+version: 2
+
+sources:
+  - name: tpch_raw
+    description: >
+      Raw TPC-H tables, loaded into the schema raw of the warehouse by el/load_raw.py.
+      TPC-H models a wholesale parts distributor: it buys parts from suppliers and sells
+      them to business customers.
+    schema: raw
+    loaded_at_field: _loaded_at
+    freshness:
+      warn_after: {count: 12, period: hour}
+      error_after: {count: 24, period: hour}
+
+    tables:
+      - name: region
+        description: The 5 sales regions of the company. Static reference data.
+        freshness: null
+        columns:
+          - name: r_regionkey
+            description: Primary key of the region.
+            data_tests:
+              - unique
+              - not_null
+
+      - name: nation
+        description: The 25 nations where customers and suppliers are located. Each nation belongs to one region.
+        columns:
+          - name: n_nationkey
+            description: Primary key of the nation.
+            data_tests:
+              - unique
+              - not_null
+
+      - name: part
+        description: Catalog of the parts the company buys and sells.
+        columns:
+          - name: p_partkey
+            description: Primary key of the part.
+            data_tests:
+              - unique
+              - not_null
+
+      - name: supplier
+        description: >
+          Companies that supply parts. Includes 5 synthetic suppliers with no parts, which
+          el/load_raw.py adds so that --mutate has rows to delete.
+        columns:
+          - name: s_suppkey
+            description: Primary key of the supplier.
+            data_tests:
+              - unique
+              - not_null
+
+      - name: partsupp
+        description: Which supplier offers which part, with its supply cost and available quantity.
+        columns:
+          - name: ps_partkey
+            description: Part offered. Half of the composite key (ps_partkey, ps_suppkey).
+            data_tests:
+              - not_null
+          - name: ps_suppkey
+            description: Supplier that offers the part. Other half of the composite key.
+            data_tests:
+              - not_null
+
+      - name: customer
+        description: Business customers. Each one belongs to one nation and one market segment.
+        columns:
+          - name: c_custkey
+            description: Primary key of the customer.
+            data_tests:
+              - unique
+              - not_null
+
+      - name: orders
+        description: One row per customer order. New orders arrive in date waves.
+        freshness:
+          warn_after: {count: 6, period: hour}
+          error_after: {count: 12, period: hour}
+        columns:
+          - name: o_orderkey
+            description: Primary key of the order.
+            data_tests:
+              - unique
+              - not_null
+          - name: o_custkey
+            description: Customer who placed the order.
+            data_tests:
+              - not_null
+              - relationships:
+                  arguments:
+                    to: source('tpch_raw', 'customer')
+                    field: c_custkey
+
+      - name: line_items
+        identifier: lineitem
+        description: >
+          One row per line of an order, with quantity, price, discount, tax and the
+          ship, commit and receipt dates. The physical table in raw is called lineitem.
+        columns:
+          - name: l_orderkey
+            description: Order the line belongs to. Half of the composite key (l_orderkey, l_linenumber).
+            data_tests:
+              - not_null
+          - name: l_linenumber
+            description: Position of the line inside its order. Other half of the composite key.
+            data_tests:
+              - not_null
